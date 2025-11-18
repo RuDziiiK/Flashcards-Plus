@@ -1,6 +1,6 @@
 {
-    "name": "flushcards_plus",
-    "short_name": "flushcards_plus",
+    "name": "flashcards",
+    "short_name": "flashcards",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

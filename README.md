@@ -1,4 +1,4 @@
-# flushcards_plus
+# flashcards
 
 A new Flutter project.
 

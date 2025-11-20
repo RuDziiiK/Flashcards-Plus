@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const FlashcardsApp());
@@ -10,12 +11,13 @@ class FlashcardsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flashcards Plus',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const FlashcardHomePage(),
+      home: const SplashScreen(),
     );
   }
 }

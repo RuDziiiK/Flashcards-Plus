@@ -13,23 +13,25 @@ class FlashcardListScreen extends StatefulWidget {
 }
 
 class _FlashcardListScreenState extends State<FlashcardListScreen> {
-  void _addFlashcard() {
-    TextEditingController questionCtrl = TextEditingController();
-    TextEditingController answerCtrl = TextEditingController();
+
+  void _editFlashcard(int index) {
+    final card = widget.category.cards[index];
+    TextEditingController q = TextEditingController(text: card.question);
+    TextEditingController a = TextEditingController(text: card.answer);
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Dodaj fiszkę"),
+      builder: (context) => AlertDialog(
+        title: const Text("Edytuj fiszkę"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: questionCtrl,
+              controller: q,
               decoration: const InputDecoration(labelText: "Pytanie"),
             ),
             TextField(
-              controller: answerCtrl,
+              controller: a,
               decoration: const InputDecoration(labelText: "Odpowiedź"),
             ),
           ],
@@ -41,18 +43,82 @@ class _FlashcardListScreenState extends State<FlashcardListScreen> {
           ),
           TextButton(
             onPressed: () {
-              if (questionCtrl.text.isNotEmpty &&
-                  answerCtrl.text.isNotEmpty) {
+              setState(() {
+                widget.category.cards[index] = Flashcard(
+                  question: q.text,
+                  answer: a.text,
+                );
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Zapisz"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteFlashcard(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Usuń fiszkę"),
+        content: const Text("Czy na pewno chcesz usunąć tę fiszkę?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Anuluj"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                widget.category.cards.removeAt(index);
+              });
+              Navigator.pop(context);
+            },
+            child: const Text("Usuń"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addFlashcard() {
+    TextEditingController q = TextEditingController();
+    TextEditingController a = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Dodaj fiszkę"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: q,
+              decoration: const InputDecoration(labelText: "Pytanie"),
+            ),
+            TextField(
+              controller: a,
+              decoration: const InputDecoration(labelText: "Odpowiedź"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Anuluj"),
+          ),
+          TextButton(
+            onPressed: () {
+              if (q.text.isNotEmpty && a.text.isNotEmpty) {
                 setState(() {
                   widget.category.cards.add(
-                    Flashcard(
-                      question: questionCtrl.text,
-                      answer: answerCtrl.text,
-                    ),
+                    Flashcard(question: q.text, answer: a.text),
                   );
                 });
-                Navigator.pop(context);
               }
+              Navigator.pop(context);
             },
             child: const Text("Dodaj"),
           ),
@@ -68,44 +134,50 @@ class _FlashcardListScreenState extends State<FlashcardListScreen> {
         title: Text(widget.category.name),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addFlashcard,
+            icon: const Icon(Icons.play_arrow),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      LearningScreen(cards: widget.category.cards),
+                ),
+              );
+            },
           )
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlueAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: ListView.builder(
-          itemCount: widget.category.cards.length,
-          itemBuilder: (_, index) {
-            final card = widget.category.cards[index];
-            return Card(
-              margin: const EdgeInsets.all(12),
-              color: Colors.white.withOpacity(0.9),
-              child: ListTile(
-                title: Text(card.question),
-                subtitle: Text(card.answer),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LearningScreen(
-                        cards: widget.category.cards,
-                      ),
-                    ),
-                  );
-                },
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addFlashcard,
+        child: const Icon(Icons.add),
+      ),
+
+      body: ListView.builder(
+        itemCount: widget.category.cards.length,
+        itemBuilder: (context, index) {
+          final card = widget.category.cards[index];
+
+          return Card(
+            child: ListTile(
+              title: Text(card.question),
+              subtitle: Text(card.answer),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () => _editFlashcard(index),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _deleteFlashcard(index),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

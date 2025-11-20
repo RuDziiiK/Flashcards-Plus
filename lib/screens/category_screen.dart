@@ -24,6 +24,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Dodaj kategorię"),
+        backgroundColor: Colors.blueAccent,
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(labelText: "Nazwa kategorii"),

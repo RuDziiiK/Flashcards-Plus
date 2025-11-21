@@ -35,13 +35,18 @@ class _LearningScreenState extends State<LearningScreen>
 
   @override
   Widget build(BuildContext context) {
+    // 1. Sprawdzamy, jaki jest motyw, aby dostosować kolory
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Tryb nauki")),
-
       body: Container(
-        decoration: const BoxDecoration(
+        // 2. Dynamiczny Gradient (jak w reszcie aplikacji)
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlueAccent],
+            colors: isDark
+                ? [const Color(0xFF2C3E50), const Color(0xFF000000)] // Ciemny
+                : [Colors.blueAccent, Colors.lightBlueAccent],       // Jasny
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -51,8 +56,10 @@ class _LearningScreenState extends State<LearningScreen>
           controller: _pageController,
           itemCount: widget.cards.length,
           onPageChanged: (_) {
-            // Po przełączeniu karty wracamy do Pytanie
-            _showAnswer = false;
+            setState(() {
+              // Po przełączeniu karty wracamy do pytania
+              _showAnswer = false;
+            });
           },
           itemBuilder: (context, index) {
             final card = widget.cards[index];
@@ -70,12 +77,14 @@ class _LearningScreenState extends State<LearningScreen>
                     height: 350,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      // 3. Kolor karty zależny od motywu
+                      color: isDark ? Colors.grey[800] : Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black26,
                           blurRadius: 10,
+                          offset: const Offset(0, 4),
                         )
                       ],
                     ),
@@ -83,9 +92,11 @@ class _LearningScreenState extends State<LearningScreen>
                       child: Text(
                         _showAnswer ? card.answer : card.question,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
+                          // 4. Kolor tekstu: Biały na ciemnym tle, Czarny na jasnym
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ),

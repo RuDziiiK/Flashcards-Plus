@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
+import 'package:flashcards/screens/splash_screen.dart';
+import 'package:flashcards/data/theme_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeService.loadThemePreference();
   runApp(const FlashcardsApp());
 }
 
@@ -10,123 +13,51 @@ class FlashcardsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flashcards Plus',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      home: const SplashScreen(),
-    );
-  }
-}
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeService.isDarkMode,
+      builder: (context, isDark, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Flashcards Plus',
 
-class Flashcard {
-  final String question;
-  final String answer;
-
-  Flashcard(this.question, this.answer);
-}
-
-class FlashcardHomePage extends StatefulWidget {
-  const FlashcardHomePage({super.key});
-
-  @override
-  State<FlashcardHomePage> createState() => _FlashcardHomePageState();
-}
-
-class _FlashcardHomePageState extends State<FlashcardHomePage> {
-  final List<Flashcard> flashcards = [
-    Flashcard('Hello', 'Cześć'),
-    Flashcard('Dog', 'Pies'),
-    Flashcard('Apple', 'Jabłko'),
-    Flashcard('Book', 'Książka'),
-  ];
-
-  int currentIndex = 0;
-  bool showAnswer = false;
-
-  void nextCard() {
-    setState(() {
-      showAnswer = false;
-      if (currentIndex < flashcards.length - 1) {
-        currentIndex++;
-      } else {
-        currentIndex = 0;
-      }
-    });
-  }
-
-  void previousCard() {
-    setState(() {
-      showAnswer = false;
-      if (currentIndex > 0) {
-        currentIndex--;
-      } else {
-        currentIndex = flashcards.length - 1;
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final card = flashcards[currentIndex];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flashcards Plus'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () => setState(() => showAnswer = !showAnswer),
-              child: Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                color: Colors.indigo[100],
-                child: SizedBox(
-                  width: 300,
-                  height: 200,
-                  child: Center(
-                    child: Text(
-                      showAnswer ? card.answer : card.question,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
+          // --- MOTYW JASNY ---
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.indigo,
+              brightness: Brightness.light,
             ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: previousCard,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Poprzednia'),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton.icon(
-                  onPressed: nextCard,
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Następna'),
-                ),
-              ],
+            scaffoldBackgroundColor: Colors.white,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white,
+              centerTitle: true,
             ),
-          ],
-        ),
-      ),
+          ),
+
+          // --- MOTYW CIEMNY ---
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.indigo,
+              brightness: Brightness.dark,
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.grey[900],
+              foregroundColor: Colors.white,
+              centerTitle: true,
+            ),
+            // USUNĄŁEM: cardTheme - Material 3 sam zadba o kolory kart
+          ),
+
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

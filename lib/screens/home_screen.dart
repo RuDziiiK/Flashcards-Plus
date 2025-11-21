@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flashcards/screens/category_screen.dart';
-import 'package:flashcards/screens/learning_screen.dart';
-import 'package:flashcards/data/data.dart';
-
+import 'package:flashcards/screens/settings_screen.dart';
+// Importujemy learning_screen nie jest tu konieczny bezpośrednio,
+// bo nawigujemy do niego przez CategoryScreen(selectMode: true)
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  // Funkcja tworząca przycisk
-  Widget _buildMenuButton(String text, VoidCallback onPressed) {
+  // Funkcja tworząca przycisk (zaktualizowana o obsługę motywu)
+  Widget _buildMenuButton(String text, VoidCallback onPressed, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: ElevatedButton(
@@ -46,11 +46,13 @@ class _HomeScreenState extends State<HomeScreen>
         style: ButtonStyle(
           minimumSize: WidgetStateProperty.all(const Size.fromHeight(50)),
           backgroundColor: WidgetStateProperty.resolveWith<Color>(
-            (Set<WidgetState> states) {
+                (Set<WidgetState> states) {
               if (states.contains(WidgetState.pressed)) {
-                return Colors.lightBlueAccent; // kolor po kliknięciu
+                // Kolor po naciśnięciu
+                return isDark ? Colors.grey[700]! : Colors.lightBlueAccent;
               }
-              return Colors.lightBlue; // kolor domyślny
+              // Kolor domyślny: Ciemnoszary dla dark mode, Niebieski dla light mode
+              return isDark ? Colors.grey[800]! : Colors.lightBlue;
             },
           ),
           foregroundColor: WidgetStateProperty.all(Colors.white),
@@ -60,7 +62,11 @@ class _HomeScreenState extends State<HomeScreen>
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Colors.blueAccent, width: 2),
+              side: BorderSide(
+                // Kolor obramowania: Indigo dla dark mode, BlueAccent dla light mode
+                color: isDark ? Colors.indigoAccent : Colors.blueAccent,
+                width: 2,
+              ),
             ),
           ),
         ),
@@ -74,11 +80,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    // 1. Sprawdzamy motyw
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        // 2. Dynamiczny Gradient
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlueAccent],
+            colors: isDark
+                ? [const Color(0xFF2C3E50), const Color(0xFF000000)] // Ciemny
+                : [Colors.blueAccent, Colors.lightBlueAccent],       // Jasny
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -89,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             children: [
               const SizedBox(height: 50),
+              // Animowana Ikona
               ScaleTransition(
                 scale: _animation,
                 child: const Icon(
@@ -98,8 +111,9 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const SizedBox(height: 30),
+              // Tytuł
               const Text(
-                'Fiszki',
+                'Fiszki Plus',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -108,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const SizedBox(height: 8),
+              // Podtytuł
               const Text(
                 'szybkie przypominanie, że coś pamiętasz',
                 style: TextStyle(
@@ -117,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const Spacer(),
+              // Menu z przyciskami
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 30),
                 child: Column(
@@ -128,14 +144,21 @@ class _HomeScreenState extends State<HomeScreen>
                           builder: (context) => const CategoryScreen(selectMode: true),
                         ),
                       );
-                    }),
+                    }, isDark),
+
                     _buildMenuButton('Kategorie fiszek', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const CategoryScreen()),
                       );
-                    }),
-                    _buildMenuButton('Ustawienia', () {}),
+                    }, isDark),
+
+                    _buildMenuButton('Ustawienia', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                      );
+                    }, isDark),
                   ],
                 ),
               ),

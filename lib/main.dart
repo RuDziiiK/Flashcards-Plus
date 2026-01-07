@@ -1,132 +1,108 @@
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flashcards/screens/splash_screen.dart';
+import 'package:flashcards/data/theme_service.dart';
+import 'package:flashcards/data/notification_service.dart';
 
-void main() {
+/// Główna funkcja startowa aplikacji.
+/// Tutaj odbywa się inicjalizacja wszystkich kluczowych serwisów (Baza danych, Powiadomienia, Motywy)
+/// zanim zostanie narysowany interfejs graficzny.
+void main() async {
+  // Wymagane, aby móc wykonywać operacje asynchroniczne (await) przed uruchomieniem runApp().
+  // Łączy warstwę Fluttera z silnikiem natywnym.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // --- 2. BLOKADA ORIENTACJI (TYLKO PION) ---
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Wczytujemy zapamiętany przez użytkownika motyw (Jasny/Ciemny) z pamięci telefonu.
+  await ThemeService.loadThemePreference();
+
+  // Inicjalizujemy system powiadomień lokalnych (tworzenie kanałów Androida).
+  await NotificationService.init();
+
+  // Uruchamiamy główny widget aplikacji.
   runApp(const FlashcardsApp());
 }
 
+/// Główny widget (Root) całej aplikacji.
+/// Odpowiada za konfigurację:
+/// 1. Globalnych motywów (ThemeData) - kolory, czcionki.
+/// 2. Reaktywności na zmianę trybu ciemnego.
+/// 3. Ekranu startowego.
 class FlashcardsApp extends StatelessWidget {
   const FlashcardsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flashcards Plus',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      home: const SplashScreen(),
-    );
-  }
-}
+    // ValueListenableBuilder nasłuchuje zmian w serwisie motywów.
+    // Dzięki temu, gdy użytkownik przełączy motyw w ustawieniach,
+    // cała aplikacja odświeży się natychmiast, bez konieczności restartu.
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeService.isDarkMode,
+      builder: (context, isDark, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Fiszki Plus',
 
-class Flashcard {
-  final String question;
-  final String answer;
-
-  Flashcard(this.question, this.answer);
-}
-
-class FlashcardHomePage extends StatefulWidget {
-  const FlashcardHomePage({super.key});
-
-  @override
-  State<FlashcardHomePage> createState() => _FlashcardHomePageState();
-}
-
-class _FlashcardHomePageState extends State<FlashcardHomePage> {
-  final List<Flashcard> flashcards = [
-    Flashcard('Hello', 'Cześć'),
-    Flashcard('Dog', 'Pies'),
-    Flashcard('Apple', 'Jabłko'),
-    Flashcard('Book', 'Książka'),
-  ];
-
-  int currentIndex = 0;
-  bool showAnswer = false;
-
-  void nextCard() {
-    setState(() {
-      showAnswer = false;
-      if (currentIndex < flashcards.length - 1) {
-        currentIndex++;
-      } else {
-        currentIndex = 0;
-      }
-    });
-  }
-
-  void previousCard() {
-    setState(() {
-      showAnswer = false;
-      if (currentIndex > 0) {
-        currentIndex--;
-      } else {
-        currentIndex = flashcards.length - 1;
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final card = flashcards[currentIndex];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flashcards Plus'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () => setState(() => showAnswer = !showAnswer),
-              child: Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                color: Colors.indigo[100],
-                child: SizedBox(
-                  width: 300,
-                  height: 200,
-                  child: Center(
-                    child: Text(
-                      showAnswer ? card.answer : card.question,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
+          // ==========================================
+          // KONFIGURACJA MOTYWU JASNEGO (Light Mode)
+          // ==========================================
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.light,
+              surface: const Color(0xFFF5F7FA),
             ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: previousCard,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Poprzednia'),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton.icon(
-                  onPressed: nextCard,
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Następna'),
-                ),
-              ],
+            scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+
+            // Globalna konfiguracja typografii.
+            // Używamy czcionki 'Poppins' dla nowoczesnego, czytelnego wyglądu.
+            textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+
+            // Domyślny styl paska nawigacji górnej
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: false,
             ),
-          ],
-        ),
-      ),
+          ),
+
+          // ==========================================
+          // KONFIGURACJA MOTYWU CIEMNEGO (Dark Mode)
+          // ==========================================
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.blueAccent,
+              brightness: Brightness.dark,
+              surface: const Color(0xFF1E1E1E),
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212),
+
+            // Typografia dla trybu ciemnego
+            textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: false,
+            ),
+          ),
+
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+
+          // Pierwszy ekran, jaki zobaczy użytkownik
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

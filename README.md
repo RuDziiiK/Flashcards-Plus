@@ -37,6 +37,7 @@ Projekt korzysta z czytelnego podziału na warstwy, co ułatwia zarządzanie kod
 lib/
 │
 ├── data/                  # Serwisy i logika biznesowa
+│   ├── data.dart                  # Domyślne fiszki
 │   ├── notification_service.dart  # Obsługa powiadomień
 │   ├── storage_service.dart       # Zapis/odczyt z SharedPreferences
 │   └── theme_service.dart         # Zarządzanie trybem Dark/Light
